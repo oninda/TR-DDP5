@@ -6,7 +6,6 @@
 #define MAX_JUDUL 100
 #define MAX_DESKRIPSI 200
 
-// Struktur data untuk film
 typedef struct {
     char judul[MAX_JUDUL];
     char deskripsi[MAX_DESKRIPSI];
