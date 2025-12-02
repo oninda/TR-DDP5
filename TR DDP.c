@@ -262,6 +262,98 @@ void menuFilm() {
     } while (pilihan != 5);
 }
 
+void bookingTiket() {
+    showLoading();
+
+    if (jumlah_film == 0) {
+        printf("Belum ada film yang tersedia untuk dibooking.\n");
+        pauseScreen();
+        return;
+    }
+
+    int id_film, jumlah, pilihan_jam;
+    showAllFilm(0);
+
+    printf("\nMasukkan ID Film yang ingin dipesan: ");
+    if (scanf("%d", &id_film) != 1) {
+        printf("Input tidak valid.\n");
+        while(getchar() != '\n');
+        pauseScreen();
+        return;
+    }
+
+    int index = searchIndex(id_film);
+    if (index < 0) {
+        printf("Film tidak ditemukan.\n");
+        pauseScreen();
+        return;
+    }
+
+    printf("Jam Tayang:\n");
+    for (int i = 0; i < MAX_JAM; i++) {
+        printf("%d. %s\n", i + 1, jam_tayang[i]);
+    }
+    printf("Pilih Jam (1-%d): ", MAX_JAM);
+    
+    if (scanf("%d", &pilihan_jam) != 1 || pilihan_jam < 1 || pilihan_jam > MAX_JAM) {
+        printf("Pilihan Jam Tayang tidak valid.\n");
+        while(getchar() != '\n');
+        pauseScreen();
+        return;
+    }
+
+    printf("Masukkan jumlah kursi yang ingin dibooking: ");
+    if (scanf("%d", &jumlah) != 1 || jumlah <= 0 || jumlah > daftar_film[index].kursi_tersedia) {
+        printf("Jumlah kursi tidak valid atau melebihi ketersediaan.\n");
+        while(getchar() != '\n');
+        pauseScreen();
+        return;
+    }
+
+    daftar_tiket[jumlah_tiket].id_booking = next_booking_id++;
+    daftar_tiket[jumlah_tiket].id_film = daftar_film[index].id_film;
+    strcpy(daftar_tiket[jumlah_tiket].judul_film, daftar_film[index].judul);
+    strcpy(daftar_tiket[jumlah_tiket].jam_tayang, jam_tayang[pilihan_jam - 1]); 
+    daftar_tiket[jumlah_tiket].jumlah_kursi = jumlah;
+    daftar_tiket[jumlah_tiket].total_harga = daftar_film[index].harga_tiket * jumlah;
+    jumlah_tiket++;
+    daftar_film[index].kursi_tersedia -= jumlah;
+
+    printf("\nTiket berhasil dibooking!\n");
+    printf("Detail Booking:\n");
+    printf("  ID Booking: %d\n", daftar_tiket[jumlah_tiket-1].id_booking);
+    printf("  Film: %s\n", daftar_tiket[jumlah_tiket-1].judul_film);
+    printf("  Jam Tayang: %s\n", daftar_tiket[jumlah_tiket-1].jam_tayang);
+    printf("  Jumlah Kursi: %d\n", daftar_tiket[jumlah_tiket-1].jumlah_kursi);
+    printf("  Total Harga: Rp %.0f\n", daftar_tiket[jumlah_tiket-1].total_harga);
+    pauseScreen();
+}
+
+void tampilkanTiket() {
+    showLoading();
+
+    if (jumlah_tiket == 0) {
+        printf("Belum ada tiket yang dibooking.\n");
+        pauseScreen();
+        return;
+    }
+
+    printf("\n--- DAFTAR TIKET YANG DIBOOKING ---\n");
+    printf("==========================================================================================\n");
+    printf("| ID Booking | ID Film | Judul Film         | Jam Tayang | Jumlah Kursi | Total Harga(Rp)|\n");
+    printf("==========================================================================================\n");
+    for (int i = 0; i < jumlah_tiket; i++) {
+        printf("| %-10d | %-7d | %-18s | %-10s | %-12d | %-13.0f  |\n",
+                daftar_tiket[i].id_booking,
+                daftar_tiket[i].id_film,
+                daftar_tiket[i].judul_film,
+                daftar_tiket[i].jam_tayang, 
+                daftar_tiket[i].jumlah_kursi,
+                daftar_tiket[i].total_harga);
+    }
+    printf("==========================================================================================\n");
+    pauseScreen();
+}
 void tampilAuthor() {
 	clearScreen();
     printf("============================================\n");
@@ -355,9 +447,7 @@ void menuUtama() {
                 showAllFilm(0); 
                 break;
             case 3: 
-                clearScreen(); 
-                printf("\n--- BOOKING TIKET (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                bookingTiket();
                 break;
             case 4: 
                 clearScreen(); 
@@ -365,9 +455,7 @@ void menuUtama() {
                 pauseScreen(); 
                 break;
             case 5: 
-                clearScreen(); 
-                printf("\n--- Tampikan Tiket (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                tampilkanTiket();
                 break;
             case 6: 
                 clearScreen(); 
