@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <windows.h>
 
@@ -7,6 +8,17 @@
 #define MAX_JUDUL 50
 #define MAX_BOOKING 100
 #define MAX_JAM 4
+#define ANSI_COLOR_RED      "\x1b[41m"
+#define ANSI_COLOR_WHITE    "\x1b[47m" 
+#define ANSI_COLOR_RESET    "\x1b[0m"  
+#define PINK  "\x1b[95m"
+#define GRAY  "\x1b[90m"
+#define GREEN "\x1b[32m"
+#define BROWN "\x1b[33m"
+#define RESET "\x1b[0m"
+
+int global_tinggi_pola = 5;    
+int global_lebar_pola = 40;
 
 char *jam_tayang[MAX_JAM] = {"10.00", "13.00", "16.00", "19.00"};
 
@@ -505,6 +517,152 @@ void pembayaranTiket() {
     pauseScreen();
 }
 
+void printTypewriterEffect(const char *text, int delay) {
+    while (*text) {
+        putchar(*text++);   
+        fflush(stdout);     
+        usleep(delay); 
+   }
+}
+void rumahPola() {
+	clearScreen();
+	int tinggi, bahan;
+    int lebarCoklat, lebarPutih;
+
+    printf("=====================================================\n");
+    printf("=            KITA USAHAKAN RUMAH ITU...             =\n");
+    printf("=====================================================\n");
+    printf("Masukkan tinggi rumah: \n");
+    scanf("%d", &tinggi);
+
+    printf("Masukkan bahan: \n");
+    scanf("%d", &bahan);
+    
+	printf("\nKita usahakan rumah itu..\n", 50000);
+	printf("Dari depan akan tampak sederhana..\n", 50000);
+	printf("Tapi penerangannya.. diracik begitu romantis..\n", 50000);
+	
+    // ===== CEROBONG =====
+    for (int i = 0; i < tinggi; i++) {
+        // *** BAGIAN YANG DIUBAH ***
+        for (int sp = 0; sp < tinggi + bahan * 2 - 1; sp++)
+            printf(" ");
+        // *************************
+        printf(GREEN);
+        for (int j = 0; j < bahan; j++)
+            printf("*");
+        printf(RESET "\n");
+    }
+
+    // Hitung lebar badan rumah berdasarkan baris terakhir atap
+    lebarCoklat = 2 * tinggi - 1; // panjang segitiga pink di baris terakhir atap
+    lebarPutih  = bahan * 3;      // panjang persegi panjang abu-abu di baris terakhir atap
+
+    // ===== ATAP =====
+    for (int i = 1; i <= tinggi; i++) {
+        for (int sp = 0; sp < tinggi - i; sp++)
+            printf(" ");
+        // Segitiga kiri
+        printf(PINK);
+        for (int j = 0; j < (2 * i - 1); j++)
+            printf("*");
+        printf(RESET);
+        // Persegi panjang samping
+        printf(GRAY);
+        for (int j = 0; j < bahan * 3; j++)
+            printf("*");
+        printf(RESET "\n");
+    }
+
+    // ===== BADAN RUMAH =====
+    for (int i = 0; i < tinggi; i++) {
+        // Bagian coklat
+        printf(BROWN);
+        for (int j = 0; j < lebarCoklat; j++)
+            printf("*");
+        printf(RESET);
+
+        // Bagian putih
+        printf(GREEN);
+        for (int j = 0; j < lebarPutih; j++)
+            printf("*");
+        printf(RESET "\n");
+    }
+
+    printf("<0>    0\n" );
+    printf("-|- 0 -|-\n");
+    printf(" | -|- | \n");
+    printf(" A  A  A   ");
+    
+    pauseScreen();
+};
+
+void tampilkanBendera() {
+    int input_tinggi = global_tinggi_pola;
+    int input_lebar = global_lebar_pola;
+    char pilihan;
+    int i, j;
+
+    clearScreen();
+    printf("===========================================\n");
+    printf("= PENGATURAN DIMENSI BENDERA (Input 1x)   =\n");
+    printf("===========================================\n");
+
+    do {
+        printf("1. Masukkan Tinggi Satuan Warna dan Lebar Bendera (Tinggi min 3, Lebar min 15, cth: 5 40): ");
+        if (scanf("%d %d", &input_tinggi, &input_lebar) != 2) {
+            while (getchar() != '\n');
+            printf("? Input tidak valid! Masukkan 2 angka dipisahkan spasi.\n");
+            continue;
+        }
+        if (input_tinggi < 3 || input_lebar < 15) {
+            printf("? Tinggi minimal 3 dan Lebar minimal 15.\n");
+            continue;
+        }
+        break;
+    } while (1);
+
+    do {
+        clearScreen();
+        printf("===========================================\n");
+        printf("= BENDERA ANDA SUDAH JADI                 =\n");
+        printf("= Tinggi: %d, Lebar: %d                     =\n", input_tinggi, input_lebar);
+        printf("===========================================\n");
+
+        // Bagian Merah
+        printf(ANSI_COLOR_RED);
+        for (i = 0; i < input_tinggi; i++) {
+            for (j = 0; j < input_lebar; j++) {
+                printf(" ");
+            }
+            printf("\n");
+        }
+        printf(ANSI_COLOR_RESET);
+
+        // Bagian Putih
+        printf(ANSI_COLOR_WHITE);
+        for (i = 0; i < input_tinggi; i++) {
+            for (j = 0; j < input_lebar; j++) {
+                printf(" ");
+            }
+            printf("\n");
+        }
+        printf(ANSI_COLOR_RESET);
+
+        printf("\n===========================================\n");
+        printf("Tekan U untuk gambar ulang (dimensi sama)...\n"); 
+        printf("Tekan X untuk kembali\nPilihan: ");
+
+        while(scanf(" %c", &pilihan) != 1) {
+             while(getchar() != '\n');
+             printf("Input tidak valid. Ulangi (U/X): ");
+        }
+
+        if (pilihan == 'x' || pilihan == 'X') break;
+
+    } while (pilihan == 'u' || pilihan == 'U');
+}
+
 void tampilAuthor() {
 	clearScreen();
     printf("============================================\n");
@@ -610,14 +768,10 @@ void menuUtama() {
                 pembayaranTiket(); 
                 break;
             case 7: 
-                clearScreen(); 
-                printf("\n--- Rumah Pola (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                rumahPola();
                 break;
             case 8: 
-                clearScreen(); 
-                printf("\n--- Bendera Negara (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                tampilkanBendera();
                 break;
             case 9: 
             	tampilAuthor();    
@@ -637,7 +791,7 @@ void menuUtama() {
 int main() {
     addFilm(101, "The Killer", 50, 45000); 
     addFilm(102, "Komang", 75, 40000);
-    addFilm(103, "ONE PIECE", 0, 42000); 
+    addFilm(103, "Venom", 0, 42000); 
     
     if (login()) {
         menuUtama();
