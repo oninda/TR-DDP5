@@ -354,6 +354,157 @@ void tampilkanTiket() {
     printf("==========================================================================================\n");
     pauseScreen();
 }
+
+void refundTiket() {
+    int id_booking_refund, index_tiket, index_film;
+
+    clearScreen();
+    printf("\n--- REFUND TIKET ---\n");
+
+    if (jumlah_tiket == 0) {
+        printf("\nBelum ada tiket yang dibooking.\n");
+        pauseScreen(); 
+        return;
+    }
+
+    tampilkanTiket(); 
+    printf("\nMasukkan ID Booking yang ingin di-refund: ");
+    if (scanf("%d", &id_booking_refund) != 1) {
+        printf("Input ID tidak valid.\n");
+        while(getchar() != '\n');
+        pauseScreen(); 
+        return;
+    }
+
+    index_tiket = searchTiketIndexById(id_booking_refund);
+    if (index_tiket < 0) {
+        printf("\nTiket dengan ID Booking %d tidak ditemukan.", id_booking_refund);
+        pauseScreen(); 
+        return;
+    }
+
+    struct Tiket *tiket_refund = &daftar_tiket[index_tiket];
+    index_film = searchIndex(tiket_refund->id_film);
+
+    if (index_film != -1) {
+        daftar_film[index_film].kursi_tersedia += tiket_refund->jumlah_kursi;
+        printf("%d kursi berhasil dikembalikan ke Film \"%s\".\n",
+                tiket_refund->jumlah_kursi, daftar_film[index_film].judul);
+    } else {
+        printf("Film asli tidak ditemukan, kursi tidak dikembalikan.\n");
+    }
+
+    printf("ID Booking: %d\n", tiket_refund->id_booking);
+    printf("Total Refund: Rp %.0f\n", tiket_refund->total_harga);
+    printf("Jam Tayang Tiket: %s\n", tiket_refund->jam_tayang);
+
+    for (int i = index_tiket; i < jumlah_tiket - 1; i++) {
+        daftar_tiket[i] = daftar_tiket[i+1];
+    }
+    jumlah_tiket--;
+
+    printf("\nREFUND BERHASIL! Tiket telah dihapus.\n");
+}
+
+void tampilkanStrukPembayaran(int jumlah, float harga, float total, char metode[]) {
+    clearScreen();
+    printf("====================================================================\n");
+    printf("=                     STRUK PEMBAYARAN BIOSKOP                     =\n");
+    printf("====================================================================\n");
+    printf("  Jumlah Tiket      : %d unit, Harga Rp %.0f per unit = Rp %.0f\n", jumlah, harga, total);
+    printf("  Total Pembayaran  : Rp %.0f\n", total);
+    printf("  Metode Bayar      : %s\n", metode);
+    printf("====================================================================\n\n");
+}
+
+void pembayaranTiket() {
+    if (jumlah_tiket == 0) {
+        printf("\nBelum ada tiket yang dibooking.\n");
+        pauseScreen();
+        return;
+    }
+
+    tampilkanTiket(); 
+
+    int id_booking;
+    printf("\nMasukkan ID Booking yang ingin dibayar: ");
+    if (scanf("%d", &id_booking) != 1) {
+        printf("Input ID tidak valid.\n");
+        while(getchar() != '\n');
+        pauseScreen();
+        return;
+    }
+
+    int index = searchTiketIndexById(id_booking);
+    if (index < 0) {
+        printf("\nTiket dengan ID Booking %d tidak ditemukan.\n", id_booking);
+        pauseScreen();
+        return;
+    }
+
+    struct Tiket *tiket = &daftar_tiket[index];
+    int metode;
+    float totalHarga = tiket->total_harga;
+
+    printf("\nTotal yang harus dibayar untuk tiket ini: Rp %.0f\n", totalHarga);
+    printf("Pilih metode pembayaran:\n");
+    printf("1. QRIS\n");
+    printf("2. Cash/Tunai\n");
+    printf("3. Batalkan Pembayaran\n");
+    printf("Masukkan pilihan (1-3): ");
+    if (scanf("%d", &metode) != 1) {
+        while(getchar() != '\n');
+        printf("Pilihan tidak valid.\n");
+        pauseScreen();
+        return;
+    }
+
+    switch (metode) {
+        case 1: {
+            tampilkanStrukPembayaran(tiket->jumlah_kursi, tiket->total_harga / tiket->jumlah_kursi, totalHarga, "QRIS");
+            int uang;
+            printf("Masukkan nominal yang dibayar: Rp ");
+            scanf("%d", &uang);
+            if (uang == totalHarga) {
+                clearScreen();
+                tampilkanStrukPembayaran(tiket->jumlah_kursi, tiket->total_harga / tiket->jumlah_kursi, totalHarga, "QRIS");
+                printf("Jumlah Dibayar    : Rp %d\n", uang);
+                printf("\nPEMBAYARAN BERHASIL! TERIMA KASIH!\n\n");
+            } else if (uang > totalHarga) {
+                printf("\nNominal tidak boleh lebih! Pembayaran dibatalkan.\n\n");
+            } else {
+                printf("\nNominal kurang! Pembayaran dibatalkan.\n\n");
+            }
+            break;
+        }
+        case 2: {
+            tampilkanStrukPembayaran(tiket->jumlah_kursi, tiket->total_harga / tiket->jumlah_kursi, totalHarga, "Cash/Tunai");
+            int uang, kembalian;
+            printf("Masukkan jumlah uang yang dibayar: Rp ");
+            scanf("%d", &uang);
+            if (uang >= totalHarga) {
+                kembalian = uang - totalHarga;
+                clearScreen();
+                tampilkanStrukPembayaran(tiket->jumlah_kursi, tiket->total_harga / tiket->jumlah_kursi, totalHarga, "Cash/Tunai");
+                printf("Jumlah Bayar      : Rp %d\n", uang);
+                printf("Kembalian         : Rp %d\n", kembalian);
+                printf("\nPEMBAYARAN BERHASIL! TERIMA KASIH!\n\n");
+            } else {
+                printf("\nUang tidak cukup! Pembayaran gagal.\n\n");
+            }
+            break;
+        }
+        case 3:
+            printf("\nPembayaran dibatalkan.\n\n");
+            break;
+        default:
+            printf("\nPilihan tidak valid!\n\n");
+            break;
+    }
+
+    pauseScreen();
+}
+
 void tampilAuthor() {
 	clearScreen();
     printf("============================================\n");
@@ -450,17 +601,13 @@ void menuUtama() {
                 bookingTiket();
                 break;
             case 4: 
-                clearScreen(); 
-                printf("\n--- Refund Tiket (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                refundTiket(); 
                 break;
             case 5: 
                 tampilkanTiket();
                 break;
             case 6: 
-                clearScreen(); 
-                printf("\n--- PEMBAYARAN (Belum diimplementasikan) ---\n"); 
-                pauseScreen(); 
+                pembayaranTiket(); 
                 break;
             case 7: 
                 clearScreen(); 
